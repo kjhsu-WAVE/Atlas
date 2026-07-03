@@ -1,0 +1,22 @@
+[
+  {
+    "email": "kjhsu@wavenet.com.tw",
+    "password_hash": "f4832de70dc9dcfdd288fd6dc6bd76d1:ca02c7916b7f461e6395939db6c9c0b840e6cc421a184764674bb3b801410998",
+    "created_at": "2026-06-24T10:50:52+08:00"
+  },
+  {
+    "email": "caroline@wavenet.com.tw",
+    "password_hash": "e72a5c3b8e294b044bc28a7bafd67b24:52635ea15ec4e4b62f792417268dcc0220d2e9870c0dc00141ea14f0acd9e741",
+    "created_at": "2026-06-24T10:50:52+08:00"
+  },
+  {
+    "email": "roana.he@partner.wavenet.com.tw",
+    "password_hash": "940a19c8bea7ddbf10ff3b25bde40ca7:8ee403e8f98c63f23d421f7064ffe94a248e5482331f4f9c1a9f11c392988886",
+    "created_at": "2026-06-24T10:50:52+08:00"
+  },
+  {
+    "email": "jasmine.shen@wavenet.com.tw",
+    "password_hash": "489bb980274d66eb350c85ad8830d42e:240e72c11cc93eb8c6b7a0aabb338ebd3fc23acae0dfcbce042fd971f3538e60",
+    "created_at": "2026-07-03T14:52:36+08:00"
+  }
+]

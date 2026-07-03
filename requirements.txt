@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+python-docx
+beautifulsoup4
+requests
+google-generativeai
+python-multipart
+pillow
