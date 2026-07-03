@@ -128,10 +128,9 @@ def send_verification_email(email: str, code: str, code_type: str) -> bool:
         return False
 
 # Auth dependency to check session cookie
-async def get_current_user(session_token: Optional[str] = Cookie(None)) -> str:
-    if not session_token or session_token not in active_sessions:
-        raise HTTPException(status_code=401, detail="未登入或登入已逾期")
-    return active_sessions[session_token]
+# Auth dependency - Removed to make app public
+async def get_current_user():
+    return "guest@public"
 
 # Auto-calculate credit rating and limit on backend
 def backend_calculate_credit(capital: float, category: str, has_debt_records: bool):
@@ -1036,5 +1035,6 @@ app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 app.mount("/", StaticFiles(directory=PUBLIC_DIR, html=True), name="public")
 
 if __name__ == "__main__":
-    print("啟動客戶與供應商資料登錄系統，請在瀏覽器打開 http://localhost:8000")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8080))
+    print(f"啟動客戶與供應商資料登錄系統，請在瀏覽器打開 http://localhost:{port}")
+    uvicorn.run("server:app", host="0.0.0.0", port=port, reload=False)

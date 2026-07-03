@@ -743,8 +743,8 @@ function openJudicialSearch(type = 'customer') {
 
 // Initial setup
 window.addEventListener('DOMContentLoaded', () => {
-  // Check user session
-  checkSession();
+  // Load list immediately (public access)
+  fetchRecords();
   
   // Setup drag-and-drop styles
   const dropzones = document.querySelectorAll('.upload-zone');
@@ -1021,8 +1021,7 @@ async function checkSession() {
 
 // Check permissions and lock/unlock credit assessment fields
 function checkPermissions() {
-  const isCaroline = currentUser === 'caroline@wavenet.com.tw';
-  
+  // All fields are enabled for everyone in public mode
   const categorySelect = document.getElementById('cust-category');
   const debtSelect = document.getElementById('cust-debt-records');
   const paymentMethodSelect = document.getElementById('cust-payment-method');
@@ -1030,46 +1029,16 @@ function checkPermissions() {
   const notesTextarea = document.getElementById('cust-notes');
   const lockNotice = document.getElementById('credit-lock-notice');
   
-  if (isCaroline) {
-    // Enable fields for Caroline
-    categorySelect.disabled = false;
-    debtSelect.disabled = false;
-    paymentMethodSelect.disabled = false;
-    currencySelect.disabled = false;
-    notesTextarea.disabled = false;
-    
-    lockNotice.style.display = 'none';
-  } else {
-    // Disable credit assessment fields for others
-    categorySelect.value = '一般公司'; // Force default category
-    debtSelect.value = 'false'; // Force default debt records
-    
-    categorySelect.disabled = true;
-    debtSelect.disabled = true;
-    paymentMethodSelect.disabled = true;
-    currencySelect.disabled = true;
-    notesTextarea.disabled = true;
-    
-    lockNotice.style.display = 'flex';
-    
-    // Recalculate based on default category and debt records
-    calculateCreditLimit();
-  }
+  categorySelect.disabled = false;
+  debtSelect.disabled = false;
+  paymentMethodSelect.disabled = false;
+  currencySelect.disabled = false;
+  notesTextarea.disabled = false;
+  
+  if (lockNotice) lockNotice.style.display = 'none';
 }
 
-// Global fetch interceptor to handle 401 unauthorized
-const originalFetch = window.fetch;
-window.fetch = async function(...args) {
-  const response = await originalFetch(...args);
-  if (response.status === 401) {
-    const url = typeof args[0] === 'string' ? args[0] : (args[0].url || '');
-    if (!url.includes('/api/auth/me')) {
-      showNotification('登入逾期或無權限，請重新登入', 'error');
-      showAuthOverlay();
-    }
-  }
-  return response;
-};
+// Fetch interceptor removed for public mode
 
 // Change Password Modal Actions
 function openChangePasswordModal() {

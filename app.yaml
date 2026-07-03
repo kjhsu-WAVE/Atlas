@@ -1,0 +1,18 @@
+runtime: python39
+entrypoint: uvicorn server.py:app --host 0.0.0.0 --port $PORT
+
+env_variables:
+  GEMINI_API_KEY: "AIzaSyA3cQveOjMCWhWAOW_1k4Lvg4U1Ol8KvFs"
+
+# Define static file handlers
+handlers:
+- url: /uploads
+  static_dir: uploads
+
+- url: /
+  static_dir: public
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
+- url: /.*
+  script: auto
