@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>客戶與供應商資料登錄系統</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <!-- User Status Bar -->
+    <div id="user-status-bar" class="user-status-bar" style="display: none;">
+      <div class="user-info">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="current-user-email">email@wavenet.com.tw</span>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary btn-sm" onclick="openChangePasswordModal()">修改密碼</button>
+        <button class="btn btn-secondary btn-sm" onclick="logout()">登出</button>
+      </div>
+    </div>
+
+    <header>
+      <h1>客戶與供應商基本資料登錄工具</h1>
+      <p>結合統一編號爬蟲、客戶授信額度自動計算與證件上傳管理系統</p>
+    </header>
+
+    <!-- Tabs Navigation -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('customer')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        客戶資料登錄
+      </button>
+      <button class="tab-btn" onclick="switchTab('supplier')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        供應商資料登錄
+      </button>
+      <button class="tab-btn" onclick="switchTab('records')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        已登錄資料清單
+      </button>
+    </nav>
+
+    <!-- CUSTOMER PANEL -->
+    <div id="panel-customer" class="tab-panel active">
+      <form id="form-customer" onsubmit="submitForm(event, 'customer')">
+        <input type="hidden" name="register_type" value="customer">
+        
+        <div class="card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            基本申請資料
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group col-4">
+              <label for="cust-apply-type">申請類別 <span class="required">*</span></label>
+              <select id="cust-apply-type" name="apply_type" class="form-select" required>
+                <option value="新增">新增客戶</option>
+                <option value="變更">變更資料</option>
+                <option value="停用">停用客戶</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="cust-apply-dept">申請部門</label>
+              <input type="text" id="cust-apply-dept" name="apply_dept" class="form-input" placeholder="例如：業務一部">
+            </div>
+            <div class="form-group col-4">
+              <label for="cust-apply-user">申請人/工號</label>
+              <input type="text" id="cust-apply-user" name="apply_user" class="form-input" placeholder="姓名 / 工號">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            客戶基本資料 (打星號欄位為必填)
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group col-6">
+              <label for="cust-ubn">統一編號 <span class="required">*</span></label>
+              <div class="input-action-group">
+                <input type="text" id="cust-ubn" name="ubn" class="form-input" maxlength="8" placeholder="輸入 8 位數統編" required>
+                <button type="button" id="btn-cust-lookup" class="btn btn-accent" onclick="lookupUbn('customer')">自動帶入</button>
+                <button type="button" class="btn btn-secondary" onclick="openMOEASearch('customer')">商工查詢</button>
+              </div>
+            </div>
+            <div class="form-group col-6">
+              <label for="cust-company-name">公司全名 / 發票抬頭 <span class="required">*</span></label>
+              <div class="input-action-group">
+                <input type="text" id="cust-company-name" name="company_name" class="form-input" required>
+                <button type="button" class="btn btn-secondary" onclick="openJudicialSearch('customer')">裁判書查詢</button>
+              </div>
+            </div>
+
+            <div class="form-group col-4">
+              <label for="cust-identity-type">身分別 <span class="required">*</span></label>
+              <select id="cust-identity-type" name="identity_type" class="form-select" required>
+                <option value="國內公司">國內公司</option>
+                <option value="國外公司">國外公司</option>
+                <option value="個人">個人</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="cust-invoice-type">憑證類型 <span class="required">*</span></label>
+              <select id="cust-invoice-type" name="invoice_type" class="form-select" required>
+                <option value="統一發票">開立統一發票</option>
+                <option value="Invoice">開立 Invoice</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="cust-capital">資本總額(元) / 實收資本額 <span class="required">*</span></label>
+              <input type="number" id="cust-capital" name="capital" class="form-input" value="0" min="0" oninput="calculateCreditLimit()" required>
+            </div>
+
+            <div class="form-group col-12">
+              <label for="cust-registered-address">公司登記地址 / 個人戶籍地址 <span class="required">*</span></label>
+              <input type="text" id="cust-registered-address" name="registered_address" class="form-input" required>
+            </div>
+            <div class="form-group col-12">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label for="cust-mailing-address">公司通訊地址 / 個人聯絡地址 <span class="required">*</span></label>
+                <label style="cursor:pointer; font-size:0.85rem;"><input type="checkbox" id="cust-sync-addr" onchange="syncAddress('customer')"> 同登記地址</label>
+              </div>
+              <input type="text" id="cust-mailing-address" name="mailing_address" class="form-input" required>
+            </div>
+
+            <div class="form-group col-4">
+              <label for="cust-phone">聯絡電話 <span class="required">*</span></label>
+              <input type="text" id="cust-phone" name="phone" class="form-input" required>
+            </div>
+            <div class="form-group col-4">
+              <label for="cust-contact">聯絡人姓名 <span class="required">*</span></label>
+              <input type="text" id="cust-contact" name="contact_person" class="form-input" required>
+            </div>
+            <div class="form-group col-4">
+              <label for="cust-email">E-mail <span class="required">*</span></label>
+              <input type="email" id="cust-email" name="email" class="form-input" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            客戶收款資料及授信額度判定
+          </div>
+          
+          <div id="credit-lock-notice" class="credit-lock-notice" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>唯讀模式：只有 caroline@wavenet.com.tw 具有調整權限，目前欄位依政策自動套用。</span>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group col-6">
+              <label for="cust-category">授信評估客戶類別 <span class="required">*</span></label>
+              <select id="cust-category" name="cust_category" class="form-select" onchange="calculateCreditLimit()" required>
+                <option value="一般公司">一般公司行號 (依資本額評級)</option>
+                <option value="集團企業">集團企業 (固定額度 2,000,000)</option>
+                <option value="關係企業">關係企業 (固定額度 2,000,000)</option>
+                <option value="政府單位">政府單位 (固定額度 10,000,000)</option>
+                <option value="公股/類政府機構">公股/類政府機構 (固定額度 5,000,000)</option>
+                <option value="4A廣告公司">4A廣告公司 (固定額度 2,000,000)</option>
+                <option value="診所/外國未上市公司">診所 / 外國未上市公司</option>
+                <option value="特殊分級">特殊身分 (政治人物/個人/商行/有未清償紀錄者)</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="cust-debt-records">司法院裁判查詢結果 <span class="required">*</span></label>
+              <select id="cust-debt-records" name="has_debt_records" class="form-select" onchange="calculateCreditLimit()" required>
+                <option value="false">無未清償債務、欠薪、欠勞健保被告紀錄</option>
+                <option value="true">有未清償債務、欠薪、欠勞健保被告紀錄</option>
+              </select>
+            </div>
+
+            <!-- Auto calculations badge -->
+            <div class="form-group col-12">
+              <div class="credit-badge-box">
+                <div class="credit-info">
+                  <span class="credit-info-label">自動判定授信額度</span>
+                  <span id="credit-limit-val" class="credit-info-value">NT$ 0</span>
+                  <input type="hidden" id="cust-credit-limit" name="credit_limit" value="0">
+                </div>
+                <div class="credit-info">
+                  <span class="credit-info-label">建議交易帳期</span>
+                  <span id="credit-payment-val" class="credit-info-value">預收</span>
+                  <input type="hidden" id="cust-payment-terms" name="payment_terms" value="預收">
+                </div>
+                <div class="credit-badge" id="credit-badge-val">E2</div>
+                <input type="hidden" id="cust-credit-rating" name="credit_rating" value="E2">
+              </div>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="cust-payment-method">付款方式 <span class="required">*</span></label>
+              <select id="cust-payment-method" name="payment_method" class="form-select" required>
+                <option value="電匯">電匯</option>
+                <option value="票據">票據</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="cust-currency">交易幣別 <span class="required">*</span></label>
+              <select id="cust-currency" name="currency" class="form-select" required>
+                <option value="TWD">TWD</option>
+                <option value="USD">USD</option>
+                <option value="RMB">RMB</option>
+                <option value="JPY">JPY</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+
+
+
+            <div class="form-group col-12">
+              <label for="cust-notes">備註說明</label>
+              <textarea id="cust-notes" name="notes" class="form-textarea" rows="3" placeholder="其他需要備註的資訊..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: right; margin-bottom: 50px;">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            儲存並下載
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- SUPPLIER PANEL -->
+    <div id="panel-supplier" class="tab-panel">
+      <form id="form-supplier" onsubmit="submitForm(event, 'supplier')">
+        <input type="hidden" name="register_type" value="supplier">
+        
+        <div class="card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            證件與存摺圖檔上傳
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group col-12">
+              <label for="supp-passbook">銀行存摺圖檔上傳 <span class="required">*</span></label>
+              <div class="upload-zone" id="zone-supp-passbook">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="upload-placeholder-text">點擊或拖曳上傳銀行存摺封面影本 (PNG, JPG)</span>
+                <input type="file" id="supp-passbook" name="passbook_file" accept="image/*" onchange="handleFileSelect(this, 'preview-supp-passbook')" required>
+                <div class="upload-preview" id="preview-supp-passbook">
+                  <img src="" alt="存摺預覽">
+                  <button type="button" class="upload-preview-remove" onclick="removeUploadedFile('supp-passbook', 'preview-supp-passbook')">&times;</button>
+                </div>
+                <!-- AI OCR Loading Overlay -->
+                <div class="ocr-loading-overlay" id="overlay-supp-passbook">
+                  <div class="ocr-spinner"></div>
+                  <div class="ocr-loading-text">AI 辨識中...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Individual specific ID files -->
+            <div class="form-group col-6 group-id-upload" style="display:none;">
+              <label for="supp-id-front">身分證正面影本 <span class="required">*</span></label>
+              <div class="upload-zone" id="zone-supp-id-front">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 012-2h2a2 2 0 012 2v1m-6 0a2 2 0 002 2h2a2 2 0 002-2M9 11h6m-6 4h6"/></svg>
+                <span class="upload-placeholder-text">點擊或拖曳上傳身分證【正面】 (PNG, JPG)</span>
+                <input type="file" id="supp-id-front" name="id_front_file" accept="image/*" onchange="handleFileSelect(this, 'preview-supp-id-front')">
+                <div class="upload-preview" id="preview-supp-id-front">
+                  <img src="" alt="身分證正面預覽">
+                  <button type="button" class="upload-preview-remove" onclick="removeUploadedFile('supp-id-front', 'preview-supp-id-front')">&times;</button>
+                </div>
+                <!-- AI OCR Loading Overlay -->
+                <div class="ocr-loading-overlay" id="overlay-supp-id-front">
+                  <div class="ocr-spinner"></div>
+                  <div class="ocr-loading-text">AI 辨識中...</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group col-6 group-id-upload" style="display:none;">
+              <label for="supp-id-back">身分證反面影本 <span class="required">*</span></label>
+              <div class="upload-zone" id="zone-supp-id-back">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 012-2h2a2 2 0 012 2v1m-6 0a2 2 0 002 2h2a2 2 0 002-2M9 11h6m-6 4h6"/></svg>
+                <span class="upload-placeholder-text">點擊或拖曳上傳身分證【反面】 (PNG, JPG)</span>
+                <input type="file" id="supp-id-back" name="id_back_file" accept="image/*" onchange="handleFileSelect(this, 'preview-supp-id-back')">
+                <div class="upload-preview" id="preview-supp-id-back">
+                  <img src="" alt="身分證反面預覽">
+                  <button type="button" class="upload-preview-remove" onclick="removeUploadedFile('supp-id-back', 'preview-supp-id-back')">&times;</button>
+                </div>
+                <!-- AI OCR Loading Overlay -->
+                <div class="ocr-loading-overlay" id="overlay-supp-id-back">
+                  <div class="ocr-spinner"></div>
+                  <div class="ocr-loading-text">AI 辨識中...</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group col-12">
+              <label for="supp-notes">備註說明</label>
+              <textarea id="supp-notes" name="notes" class="form-textarea" rows="3" placeholder="其他需要說明的條款或特殊付款約定..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            基本申請與類別
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group col-4">
+              <label for="supp-apply-type">申請類別 <span class="required">*</span></label>
+              <select id="supp-apply-type" name="apply_type" class="form-select" required>
+                <option value="新增">新增供應商</option>
+                <option value="變更">變更資料</option>
+                <option value="停用">停用供應商</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label>供應商類型 <span class="required">*</span></label>
+              <div class="toggle-group">
+                <button type="button" id="btn-subtype-company" class="toggle-btn active" onclick="switchSupplierSubtype('company')">公司行號</button>
+                <button type="button" id="btn-subtype-individual" class="toggle-btn" onclick="switchSupplierSubtype('individual')">個人 (勞報)</button>
+              </div>
+              <input type="hidden" id="supp-subtype" name="supplier_subtype" value="company">
+            </div>
+            <div class="form-group col-4">
+              <label for="supp-apply-user">申請專員 / 部門</label>
+              <input type="text" id="supp-apply-user" name="apply_user" class="form-input" placeholder="姓名 / 部門">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            供應商基本資料
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group col-6">
+              <label id="label-ubn-id" for="supp-ubn-id">統一編號 <span class="required">*</span></label>
+              <div class="input-action-group">
+                <input type="text" id="supp-ubn-id" name="ubn_or_id" class="form-input" maxlength="10" placeholder="輸入 8 位數統編" required>
+                <button type="button" id="btn-supp-lookup" class="btn btn-accent" onclick="lookupUbn('supplier')">自動帶入</button>
+                <button type="button" id="btn-supp-moea" class="btn btn-secondary" onclick="openMOEASearch('supplier')">商工查詢</button>
+              </div>
+            </div>
+            <div class="form-group col-6">
+              <label id="label-company-name" for="supp-company-name">公司全名 / 發票抬頭 <span class="required">*</span></label>
+              <div class="input-action-group">
+                <input type="text" id="supp-company-name" name="company_name" class="form-input" required>
+                <button type="button" class="btn btn-secondary" onclick="openJudicialSearch('supplier')">裁判書查詢</button>
+              </div>
+            </div>
+
+            <div class="form-group col-4">
+              <label for="supp-identity-type">身分別 <span class="required">*</span></label>
+              <select id="supp-identity-type" name="identity_type" class="form-select" required>
+                <option value="國內公司">國內公司</option>
+                <option value="國外公司">國外公司</option>
+                <option value="個人">個人</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label id="label-invoice-type" for="supp-invoice-type">憑證類型 <span class="required">*</span></label>
+              <select id="supp-invoice-type" name="invoice_type" class="form-select" required>
+                <option value="三聯式發票">開立三聯式發票</option>
+                <option value="電子發票">開立電子發票</option>
+                <option value="收據/勞報單">開立收據/勞報單</option>
+                <option value="Invoice">開立 Invoice</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="supp-phone">聯絡電話 <span class="required">*</span></label>
+              <input type="text" id="supp-phone" name="phone" class="form-input" required>
+            </div>
+
+            <div class="form-group col-12">
+              <label id="label-reg-address" for="supp-registered-address">公司登記地址 / 個人戶籍地址 <span class="required">*</span></label>
+              <input type="text" id="supp-registered-address" name="registered_address" class="form-input" required>
+            </div>
+            <div class="form-group col-12">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label id="label-mail-address" for="supp-mailing-address">公司通訊地址 / 個人聯絡地址 <span class="required">*</span></label>
+                <label style="cursor:pointer; font-size:0.85rem;"><input type="checkbox" id="supp-sync-addr" onchange="syncAddress('supplier')"> 同登記地址</label>
+              </div>
+              <input type="text" id="supp-mailing-address" name="mailing_address" class="form-input" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="supp-contact">聯絡人姓名 <span class="required">*</span></label>
+              <input type="text" id="supp-contact" name="contact_person" class="form-input" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="supp-email">E-mail <span class="required">*</span></label>
+              <input type="email" id="supp-email" name="email" class="form-input" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            供應商付款及銀行帳戶資料
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group col-4">
+              <label for="supp-payment-method">付款方式 <span class="required">*</span></label>
+              <select id="supp-payment-method" name="payment_method" class="form-select" required>
+                <option value="電匯">電匯</option>
+                <option value="信用卡">信用卡</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="supp-currency">交易幣別 <span class="required">*</span></label>
+              <select id="supp-currency" name="currency" class="form-select" required>
+                <option value="TWD">TWD</option>
+                <option value="USD">USD</option>
+                <option value="RMB">RMB</option>
+                <option value="JPY">JPY</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="supp-bank-code">銀行與分行代號 (7碼) <span class="required">*</span></label>
+              <input type="text" id="supp-bank-code" name="bank_code" class="form-input" maxlength="7" placeholder="前3碼銀行+後4碼分行" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="supp-bank-name">銀行名稱 <span class="required">*</span></label>
+              <input type="text" id="supp-bank-name" name="bank_name" class="form-input" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="supp-branch-name">分行名稱 <span class="required">*</span></label>
+              <input type="text" id="supp-branch-name" name="branch_name" class="form-input" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="supp-account-name">匯款戶名 <span class="required">*</span></label>
+              <input type="text" id="supp-account-name" name="bank_account_name" class="form-input" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="supp-account-number">匯款帳號 (純數字) <span class="required">*</span></label>
+              <input type="text" id="supp-account-number" name="bank_account_number" class="form-input" placeholder="不要輸入橫線或符號" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="supp-payment-terms">供應商付款條件 <span class="required">*</span></label>
+              <select id="supp-payment-terms" name="payment_terms" class="form-select" onchange="togglePaymentTermsReason()" required>
+                <option value="月結 60天">月結 60天 (標準政策)</option>
+                <option value="月結 90天">月結 90天</option>
+                <option value="月結 30天">月結 30天 (提早付款)</option>
+                <option value="即期">即期付款 (提早付款)</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+
+            <div class="form-group col-6" id="group-payment-reason" style="display:none;">
+              <label for="supp-payment-reason">提早付款少於60天原因說明 <span class="required">*</span></label>
+              <input type="text" id="supp-payment-reason" name="payment_terms_reason" class="form-input" placeholder="請填寫提早付款的原因">
+            </div>
+          </div>
+        </div>
+
+
+
+        <div style="text-align: right; margin-bottom: 50px;">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            儲存並下載
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- RECORDS LIST PANEL -->
+    <div id="panel-records" class="tab-panel">
+      <div class="card">
+        <div class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          已登錄歷史資料
+        </div>
+
+        <div class="records-filters">
+          <div class="search-filter">
+            <input type="text" id="records-search" class="form-input" placeholder="搜尋公司名稱、統一編號、聯絡人..." oninput="filterRecords()">
+          </div>
+          <div class="type-filter">
+            <select id="records-type-filter" class="form-select" onchange="filterRecords()">
+              <option value="all">全部類型</option>
+              <option value="customer">僅看客戶</option>
+              <option value="supplier">僅看供應商</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table id="records-table">
+            <thead>
+              <tr>
+                <th>登錄時間</th>
+                <th>類型</th>
+                <th>統編 / 身分證字號</th>
+                <th>名稱 / 發票抬頭</th>
+                <th>聯絡電話</th>
+                <th>聯絡人</th>
+                <th>授信 / 付款條件</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="records-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+          <div id="records-empty" class="empty-records-msg" style="display:none;">
+            目前尚無符合的登錄資料
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX / RECORD DETAILS MODAL -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <button class="lightbox-close" onclick="closeLightbox(event)">&times;</button>
+      <div class="lightbox-title" id="lb-title">詳細資料明細</div>
+      
+      <div class="lightbox-details-grid" id="lb-details">
+        <!-- Dynamically populated -->
+      </div>
+      
+      <div class="lightbox-attachments" id="lb-attachments-container" style="display:none;">
+        <div class="attachments-title">已上傳檔案影本</div>
+        <div class="attachments-grid" id="lb-attachments">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL OVERLAY -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="auth-box card">
+      <!-- 1. LOGIN VIEW -->
+      <div id="auth-login-view" class="auth-view active">
+        <div class="auth-header">
+          <h2>登入系統</h2>
+          <p>請使用您的潮網電子郵件登入</p>
+        </div>
+        <form onsubmit="handleLoginSubmit(event)">
+          <div class="form-group">
+            <label for="login-email">電子郵件 (@wavenet.com.tw) <span class="required">*</span></label>
+            <input type="email" id="login-email" class="form-input" placeholder="example@wavenet.com.tw" required>
+          </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="login-password">密碼 <span class="required">*</span></label>
+            <input type="password" id="login-password" class="form-input" placeholder="請輸入密碼" required>
+          </div>
+          <div class="auth-actions">
+            <a href="javascript:void(0)" onclick="switchAuthView('forgot')">忘記密碼？</a>
+            <a href="javascript:void(0)" onclick="switchAuthView('register')">註冊新帳號</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top: 20px;">登入</button>
+        </form>
+      </div>
+
+      <!-- 2. REGISTER VIEW -->
+      <div id="auth-register-view" class="auth-view">
+        <div class="auth-header">
+          <h2>註冊帳號</h2>
+          <p>潮網人員可自己註冊，請輸入您的潮網信箱進行驗證</p>
+        </div>
+        <form onsubmit="handleRegisterSubmit(event)">
+          <div class="form-group">
+            <label for="register-email">電子郵件 <span class="required">*</span></label>
+            <div class="input-action-group">
+              <input type="email" id="register-email" class="form-input" placeholder="example@wavenet.com.tw" required>
+              <button type="button" id="btn-send-reg-code" class="btn btn-accent" onclick="sendOtpCode('register')">傳送驗證碼</button>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="register-code">驗證碼 <span class="required">*</span></label>
+            <input type="text" id="register-code" class="form-input" placeholder="請輸入信箱中的 6 位數驗證碼" required>
+          </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="register-password">設定密碼 (至少 6 碼) <span class="required">*</span></label>
+            <input type="password" id="register-password" class="form-input" placeholder="設定您的登入密碼" required>
+          </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="register-confirm-password">確認密碼 <span class="required">*</span></label>
+            <input type="password" id="register-confirm-password" class="form-input" placeholder="再次輸入密碼確認" required>
+          </div>
+          <div class="auth-actions">
+            <span>已經有帳號？</span>
+            <a href="javascript:void(0)" onclick="switchAuthView('login')">返回登入</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top: 20px;">完成註冊</button>
+        </form>
+      </div>
+
+      <!-- 3. FORGOT PASSWORD VIEW -->
+      <div id="auth-forgot-view" class="auth-view">
+        <div class="auth-header">
+          <h2>忘記密碼</h2>
+          <p>使用您註冊的電子郵件進行身份驗證並重設密碼</p>
+        </div>
+        <form onsubmit="handleForgotSubmit(event)">
+          <div class="form-group">
+            <label for="forgot-email">電子郵件 <span class="required">*</span></label>
+            <div class="input-action-group">
+              <input type="email" id="forgot-email" class="form-input" placeholder="example@wavenet.com.tw" required>
+              <button type="button" id="btn-send-reset-code" class="btn btn-accent" onclick="sendOtpCode('reset')">傳送驗證碼</button>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="forgot-code">驗證碼 <span class="required">*</span></label>
+            <input type="text" id="forgot-code" class="form-input" placeholder="請輸入信箱中的 6 位數驗證碼" required>
+          </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="forgot-new-password">設定新密碼 (至少 6 碼) <span class="required">*</span></label>
+            <input type="password" id="forgot-new-password" class="form-input" placeholder="輸入新的登入密碼" required>
+          </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="forgot-confirm-password">確認新密碼 <span class="required">*</span></label>
+            <input type="password" id="forgot-confirm-password" class="form-input" placeholder="再次輸入新密碼確認" required>
+          </div>
+          <div class="auth-actions">
+            <span>記起來了？</span>
+            <a href="javascript:void(0)" onclick="switchAuthView('login')">返回登入</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top: 20px;">重設密碼</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD MODAL -->
+  <div id="change-pw-modal" class="lightbox" onclick="closeChangePasswordModal(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()" style="max-width: 400px; padding: 30px;">
+      <button class="lightbox-close" onclick="closeChangePasswordModal(event)">&times;</button>
+      <div class="lightbox-title" style="margin-bottom: 20px; font-weight: 600;">修改密碼</div>
+      <form onsubmit="handleChangePasswordSubmit(event)">
+        <div class="form-group">
+          <label for="change-old-password">目前密碼 <span class="required">*</span></label>
+          <input type="password" id="change-old-password" class="form-input" placeholder="請輸入當前密碼" required>
+        </div>
+        <div class="form-group" style="margin-top: 15px;">
+          <label for="change-new-password">設定新密碼 (至少 6 碼) <span class="required">*</span></label>
+          <input type="password" id="change-new-password" class="form-input" placeholder="請輸入新密碼" required>
+        </div>
+        <div class="form-group" style="margin-top: 15px;">
+          <label for="change-confirm-password">確認新密碼 <span class="required">*</span></label>
+          <input type="password" id="change-confirm-password" class="form-input" placeholder="請再次輸入新密碼確認" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 25px;">確認修改</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- STATUS NOTIFICATION -->
+  <div id="notification" class="notification">
+    <span id="notification-msg"></span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
